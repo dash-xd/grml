@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  qemu-grml:
+    image: docker.io/qemux/qemu:latest
+    container_name: qemu-grml
+    privileged: true
+    environment:
+      RAM_SIZE: "2G"
+      CPU_CORES: "2" 
+      DISK_SIZE: "2G"
+      ARGUMENTS: >
+        -machine type=q35,accel=kvm
+        -cpu host
+        -m 2048
+        -boot d
+        -nic user,model=virtio-net-pci,hostfwd=tcp::2222-:22
+        -virtfs local,path=/storage/grml,mount_tag=hostshare,security_model=mapped
+
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "9006:8006"
+      - "9222:22"
+    volumes:
+      - ./img/grml-small-2025.08-amd64.iso:/boot.iso
+      - ./storage:/storage/grml
+    restart: unless-stopped
+    stop_grace_period: 1m
